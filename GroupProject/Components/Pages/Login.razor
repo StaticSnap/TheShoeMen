@@ -1,0 +1,26 @@
+﻿@page "/login"
+@rendermode InteractiveServer
+
+<PageTitle>Log in</PageTitle>
+
+<h2>Login with your TheShoeMen username and password:</h2>
+<form method="post" class="mx-auto" style="max-width: 50%; text-align: left;">
+    <div class="mb-3">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" id="username" name="Username" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" id="password" name="Password" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Log in</button>
+</form>
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}
