@@ -1,27 +1,81 @@
 ﻿@page "/createaccount"
 @rendermode InteractiveServer
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
 
-<PageTitle>Create Account</PageTitle>
+<PageTitle>Log in</PageTitle>
 
-<h2>Create a username and password:</h2>
-<form method="post" class="mx-auto" style="max-width: 50%; text-align: left;">
+<h2>Create a TheShoeMen username and password:</h2>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @((MarkupString)errorMessage)
+    </div>
+}
+
+<form @onsubmit="HandleSubmit" class="mx-auto" style="max-width: 50%; text-align: left;">
     <div class="mb-3">
         <label for="username" class="form-label">Username</label>
-        <input type="text" id="username" name="Username" class="form-control" required>
+        <input type="text" id="username" @bind="username" class="form-control" required>
     </div>
     <div class="mb-3">
         <label for="password" class="form-label">Password</label>
-        <input type="password" id="password" name="Password" class="form-control" required>
+        <input type="password" id="password" @bind="password" class="form-control" required>
     </div>
-    <button type="submit" class="btn btn-primary">Create Account</button>
+    <button type="submit" class="btn btn-primary" disabled="@isLoading">
+        @if (isLoading)
+        {
+            <span>Loading...</span>
+        }
+        else
+        {
+            <span>Log in</span>
+        }
+    </button>
 </form>
 
-@code 
-{
-    private int currentCount = 0;
+@code {
+    private string username = "";
+    private string password = "";
+    private string errorMessage = "";
+    private bool isLoading = false;
 
-    private void IncrementCount()
+    private async Task HandleSubmit()
     {
-        currentCount++;
+        try
+        {
+            isLoading = true;
+            errorMessage = "";
+
+            // Create SQL query to check login
+            var query = $"SELECT * FROM users WHERE username = '{username}'";
+
+            using var response = await Http.PostAsync("http://localhost:8080", new StringContent(query));
+            var result = await response.Content.ReadFromJsonAsync<List<object>>();
+
+            if (result == null || result.Count == 0)
+            {
+                // profile doesn't exist, can create this account.
+                Console.WriteLine(result);
+                var queryCreate = $"insert into users (username, password) values('{username}', '{password}')";
+                using var responseCreate = await Http.PostAsync("http://localhost:8080", new StringContent(queryCreate));
+                NavigationManager.NavigateTo("/Shop");
+            }
+            else
+            {
+                errorMessage = "Username already in use please <a href='/login'>log in</a> with your credentials";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred while trying to log in. Please try again.";
+            Console.WriteLine($"Login error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
     }
 }
