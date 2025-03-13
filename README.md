@@ -1,4 +1,4 @@
-Install Beekeeper studio so its easier to view our databases.\m
+Install Beekeeper studio so its easier to view our databases.\n
 
 Before you run the program, run server.py
 
