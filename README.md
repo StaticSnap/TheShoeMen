@@ -1,5 +1,6 @@
-Install Beekeeper studio so its easier to view our databases
-before you run the program, run server.py
+Install Beekeeper studio so its easier to view our databases.
+
+Before you run the program, run server.py
 
 `curl --request POST --data "your sql query" http://localhost:8080`
 
