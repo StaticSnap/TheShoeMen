@@ -17,6 +17,17 @@
 
 <form @onsubmit="HandleSubmit" class="mx-auto" style="max-width: 50%; text-align: left;">
     <div class="mb-3">
+        <label class="form-label">I am a</label>
+        <div class="form-check">
+            <input type="radio" id="customerRole" name="UserRole" class="form-check-input" value="customer" @onchange="SetSelectedRole">
+            <label for="customerRole" class="form-check-label">Customer</label>
+        </div>
+        <div class="form-check">
+            <input type="radio" id="ownerRole" name="UserRole" class="form-check-input" value="employee" @onchange="SetSelectedRole">
+            <label for="ownerRole" class="form-check-label">Admin (register an employee)</label>
+        </div>
+    </div>
+    <div class="mb-3">
         <label for="username" class="form-label">Username</label>
         <input type="text" id="username" @bind="username" class="form-control" required>
     </div>
@@ -31,7 +42,7 @@
         }
         else
         {
-            <span>Log in</span>
+            <span>Create Account</span>
         }
     </button>
 </form>
@@ -41,6 +52,12 @@
     private string password = "";
     private string errorMessage = "";
     private bool isLoading = false;
+    private string SelectedRole { get; set; } = "customer"; // Default selection
+
+    private void SetSelectedRole(ChangeEventArgs e)
+    {
+        SelectedRole = e.Value?.ToString();
+    }
 
     private async Task HandleSubmit()
     {
@@ -59,7 +76,7 @@
             {
                 // profile doesn't exist, can create this account.
                 Console.WriteLine(result);
-                var queryCreate = $"insert into users (username, password) values('{username}', '{password}')";
+                var queryCreate = $"insert into users (username, password, user_role) values('{username}', '{password}', '{SelectedRole}')";
                 using var responseCreate = await Http.PostAsync("http://localhost:8080", new StringContent(queryCreate));
                 NavigationManager.NavigateTo("/Shop");
             }
