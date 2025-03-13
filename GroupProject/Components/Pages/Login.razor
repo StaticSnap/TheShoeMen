@@ -11,7 +11,7 @@
 @if (!string.IsNullOrEmpty(errorMessage))
 {
     <div class="alert alert-danger" role="alert">
-        @errorMessage
+        @((MarkupString)errorMessage)
     </div>
 }
 
@@ -63,7 +63,7 @@
             }
             else
             {
-                errorMessage = "Invalid username or password";
+                errorMessage = "Invalid username or password. Don't have an account? <a href='/createaccount'>Create one here</a>";
             }
         }
         catch (Exception ex)
