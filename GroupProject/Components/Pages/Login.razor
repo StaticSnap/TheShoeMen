@@ -6,7 +6,9 @@
 
 <PageTitle>Log in</PageTitle>
 
-<h2>Login with your TheShoeMen username and password:</h2>
+<div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-gray-800 mb-2">Login with your TheShoeMen credentials:</h2>
+    </div>
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
@@ -15,7 +17,7 @@
     </div>
 }
 
-<form @onsubmit="HandleSubmit" class="mx-auto" style="max-width: 50%; text-align: left;">
+<form @onsubmit="HandleSubmit" class="mx-auto" style="max-width: 50%; text-align: left; padding-top: 20px;">
     <div class="mb-3">
         <label for="username" class="form-label">Username</label>
         <input type="text" id="username" @bind="username" class="form-control" required>
@@ -24,7 +26,7 @@
         <label for="password" class="form-label">Password</label>
         <input type="password" id="password" @bind="password" class="form-control" required>
     </div>
-    <button type="submit" class="btn btn-primary" disabled="@isLoading">
+    <button type="submit" class="shop-button" disabled="@isLoading">
         @if (isLoading)
         {
             <span>Loading...</span>

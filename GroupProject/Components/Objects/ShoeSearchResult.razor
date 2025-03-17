@@ -1,6 +1,17 @@
-﻿<div class="ShoeSearchResult" @onclick="() => onClick.InvokeAsync(shoe)">
-	<h2>@shoe.model</h2>
-	<h3>@shoe.manufacturer</h3> @shoe.price
+﻿<div class="shoe-card">
+    <div class="shoe-image-container">
+		<img class="shoe-image" src="images/vansoldskool.jpg" alt="@shoe.model" @onclick="() => onClick.InvokeAsync(shoe)">
+        <div class="shoe-manufacturer">
+            @shoe.manufacturer
+        </div>
+    </div>
+    <div class="shoe-details">
+        <h3 class="shoe-model">@shoe.model</h3>
+        <p class="shoe-price">$@shoe.price</p>
+        <button class="view-details-button" @onclick="() => onClick.InvokeAsync(shoe)">
+            View Details
+        </button>
+    </div>
 </div>
 
 @code{

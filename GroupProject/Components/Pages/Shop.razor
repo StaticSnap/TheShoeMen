@@ -7,9 +7,11 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Welcome to the shoe men</h1>
+<div class="text-center mb-16">
+        <h2 class="text-4xl font-bold text-gray-800 mb-2">Shop</h2>
+</div>
 
-<div class="scrollable-list">
+<div class="shoe-list">
 	@foreach (Shoe shoe in shoes){
 		<GroupProject.Components.Objects.ShoeSearchResult shoe="shoe" onClick ="NavToDetailsPage"></GroupProject.Components.Objects.ShoeSearchResult>
 	}
