@@ -1,0 +1,9 @@
+﻿<div class="ShoeSearchResult" @onclick="() => onClick.InvokeAsync(shoe)">
+	<h2>@shoe.model</h2>
+	<h3>@shoe.manufacturer</h3> @shoe.price
+</div>
+
+@code{
+	[Parameter] public Shoe shoe { get; set; }
+	[Parameter] public EventCallback<Shoe> onClick { get; set; }
+}

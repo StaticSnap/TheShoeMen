@@ -1,0 +1,23 @@
+﻿@page "/ShoeListing/{shoeString}"
+@inject NavigationManager navigation
+@rendermode InteractiveServer
+
+<h2>shoe model: @shoe.model</h2>
+<h2>shoe price: $@shoe.price</h2>
+<button Size="ButtonSize.Large" @onclick=GoBack> Return </button>
+
+@code{
+	[Parameter] public string shoeString { get; set; }
+	private Shoe shoe;
+
+	protected override Task OnInitializedAsync()
+	{
+		shoe = Shoes.GetShoeFromID(int.Parse(shoeString));
+		return base.OnInitializedAsync();
+	}
+
+	private void GoBack(){
+		navigation.NavigateTo($"/Shop");
+	}
+
+}

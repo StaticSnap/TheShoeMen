@@ -1,5 +1,33 @@
+@using System.Net.Http.Json
+@using System.Text.Json
+@inject HttpClient Http
+@inject NavigationManager navigation
+@rendermode InteractiveServer
 @page "/Shop"
 
 <PageTitle>Home</PageTitle>
 
-<h1>Welcome to the shop men</h1>
+<h1>Welcome to the shoe men</h1>
+
+<div class="scrollable-list">
+	@foreach (Shoe shoe in shoes){
+		<GroupProject.Components.Objects.ShoeSearchResult shoe="shoe" onClick ="NavToDetailsPage"></GroupProject.Components.Objects.ShoeSearchResult>
+	}
+</div>
+
+@code {
+	private List<Shoe> shoes = new List<Shoe>();
+
+	protected async override Task OnInitializedAsync()
+	{
+		await Shoes.Init(Http);
+
+		shoes = Shoes.GetShoes();
+
+		await base.OnInitializedAsync();
+	}
+
+	private void NavToDetailsPage(Shoe shoe){
+		navigation.NavigateTo($"/ShoeListing/{shoe.shoeID.ToString()}");
+	}
+}
