@@ -1,0 +1,53 @@
+@page "/review/{shoeid}";
+@using System.Net.Http.Json
+@inject NavigationManager navigation
+@inject HttpClient Http
+@rendermode InteractiveServer
+
+<PageTitle>Review</PageTitle>
+
+<div class="text-center mb-16">
+    <h2 class="text-4xl font-bold text-gray-800 mb-2">Review @shoe.model</h2>
+</div>
+
+<div class="mx-auto text-center">
+    <EditForm Model="@this" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mx-auto text-center">
+            <label for="username">Username:</label>
+            <InputText id="username" @bind-Value="username" />
+        </div>
+
+        <div class="mx-auto text-center">
+            <label for="rating">Rating:</label>
+            <InputNumber id="rating" @bind-Value="rating" Min="1" Max="5" />
+        </div>
+
+        <button class="view-details-button" type="submit">Submit Review</button>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public string shoeid { get; set; }
+    private Shoe shoe;
+    private string username;
+    private int rating;
+
+    protected override Task OnInitializedAsync()
+    {
+        shoe = Shoes.GetShoeFromID(int.Parse(shoeid));
+        return base.OnInitializedAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+		var queryCreate = $"insert into users (username, ShoeID, rating) values('{username}', '{shoeid}', '{rating}')";
+    	using var responseCreate = await Http.PostAsync("http://localhost:8080", new StringContent(queryCreate));
+        if (responseCreate.IsSuccessStatusCode)
+        {
+            navigation.NavigateTo("/store");
+        }
+    }
+}

@@ -7,8 +7,14 @@
     <div class="shoe-details">
         <h3 class="shoe-model">@shoe.model</h3>
         <p class="shoe-price">$@shoe.price</p>
+		<button class="view-details-button" @onclick="AddToCart">
+            Add to Cart
+        </button>
         <button class="view-details-button" @onclick="GoBack">
             Return
+        </button>
+		<button class="view-details-button" @onclick="Review">
+            Review
         </button>
     </div>
 </div>
@@ -16,6 +22,7 @@
 @code{
 	[Parameter] public string shoeString { get; set; }
 	private Shoe shoe;
+	//private User user; (fill when user is implemented)
 
 	protected override Task OnInitializedAsync()
 	{
@@ -25,6 +32,14 @@
 
 	private void GoBack(){
 		navigation.NavigateTo($"/Shop");
+	}
+
+	private void AddToCart() {
+		//var query = $"insert into user-cart values('{user.username}'. '{shoe.shoeID}')"; (fill when user is implemented)
+	}
+
+	private void Review() {
+		navigation.NavigateTo($"/review/{shoe.shoeID}");
 	}
 
 }
