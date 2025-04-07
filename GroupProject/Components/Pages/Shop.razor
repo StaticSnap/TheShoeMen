@@ -89,7 +89,7 @@
     protected async Task SearchShoes()
     {
         isLoading = true;
-        var query = $"SELECT * FROM shoe WHERE model = '%{searchTerm}%' OR manufacturer LIKE '%{searchTerm}%' AND price <= {maxPrice} AND price >= {minPrice};";
+        var query = $"SELECT * FROM shoe WHERE model LIKE '%{searchTerm}%' OR manufacturer LIKE '%{searchTerm}%' AND price <= {maxPrice} AND price >= {minPrice};";
 
         var response = await Http.PostAsync("http://localhost:8080/", new StringContent(query));
         shoesList = await response.Content.ReadFromJsonAsync<List<Shoe>>();
