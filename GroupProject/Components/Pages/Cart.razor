@@ -1,0 +1,36 @@
+@page "/cart/{username}"
+@inject NavigationManager navigation
+@inject HttpClient Http
+@rendermode InteractiveServer
+
+<div class="shoe-list">
+	@foreach (Shoe shoe in shoes){
+		<GroupProject.Components.Objects.CartListing shoe="shoe"></GroupProject.Components.Objects.CartListing>
+	}
+</div>
+
+@code{
+    [Parameter] public string username { get; set; }
+    private List<Shoe> shoes = new List<Shoe>();
+	private Shoe shoe;
+	private User user;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await Shoes.Init(Http);
+
+		shoes = Shoes.GetShoes();
+
+		await base.OnInitializedAsync();
+	}
+
+	private async void Remove() {
+		var queryCreate = $"delete * from user-cart where username={username} and ShoeID={shoe.shoeID}";
+    	using var responseCreate = await Http.PostAsync("http://localhost:8080", new StringContent(queryCreate));
+        if (responseCreate.IsSuccessStatusCode)
+        {
+            navigation.NavigateTo($"/cart/{username}");
+        }
+	}
+
+}

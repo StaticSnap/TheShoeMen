@@ -1,4 +1,4 @@
-@page "/review/{shoeid}";
+@page "/review/{shoeid}"
 @using System.Net.Http.Json
 @inject NavigationManager navigation
 @inject HttpClient Http
@@ -43,11 +43,52 @@
 
     private async Task HandleValidSubmit()
     {
-		var queryCreate = $"insert into users (username, ShoeID, rating) values('{username}', '{shoeid}', '{rating}')";
-    	using var responseCreate = await Http.PostAsync("http://localhost:8080", new StringContent(queryCreate));
-        if (responseCreate.IsSuccessStatusCode)
+        var query = $@"INSERT INTO reviews (username, ShoeID, rating) 
+                     VALUES('{username}', '{shoeid}', '{rating}')
+                     ON CONFLICT(username, ShoeID) DO UPDATE SET rating = excluded.rating";
+
+        try 
         {
-            navigation.NavigateTo("/store");
+            var content = new StringContent(query, System.Text.Encoding.UTF8, "text/plain");
+            using var response = await Http.PostAsync("http://localhost:8080", content);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                // Check if response content exists before reading
+                if (response.Content != null)
+                {
+                    try 
+                    {
+                        var responseContent = await response.Content.ReadAsStringAsync();
+                        if (!string.IsNullOrEmpty(responseContent))
+                        {
+                            Console.WriteLine($"Server response: {responseContent}");
+                        }
+                        navigation.NavigateTo("/shop");
+                    }
+                    catch (Exception readEx)
+                    {
+                        Console.WriteLine($"Error reading response: {readEx.Message}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Response content was null");
+                    navigation.NavigateTo("/shop");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Error submitting review: {response.StatusCode}");
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Server response: {errorContent}");
+            }
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception submitting review: {ex.Message}");
+            Console.WriteLine($"Query was: {query}");
+        }
+        navigation.NavigateTo("/shop");
     }
 }
