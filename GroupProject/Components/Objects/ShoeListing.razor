@@ -53,6 +53,13 @@
 	protected override Task OnInitializedAsync()
 	{
 		shoe = Shoes.GetShoeFromID(int.Parse(shoeString));
+		List<(int, int, int)> stockData = shoe.GetInventory();
+
+		foreach(var line in stockData){
+			colors.Add(Colors.GetColorFromID(line.Item1));
+			sizes.Add(line.Item2.ToString());
+		}
+
 		return base.OnInitializedAsync();
 	}
 

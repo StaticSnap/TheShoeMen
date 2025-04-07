@@ -25,6 +25,8 @@ namespace GroupProject
             {
                 await shoe.Init(Http);
             }
+
+            await Colors.Init(Http);
         }
 
         public static List<Shoe> GetShoes()
