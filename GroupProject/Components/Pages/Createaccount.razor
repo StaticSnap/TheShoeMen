@@ -1,10 +1,13 @@
 ﻿@page "/createaccount"
 @rendermode InteractiveServer
 @using System.Net.Http.Json
+@using GroupProject.Components.Services
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject ICookieService CookieService
+@inject UserState UserState
 
-<PageTitle>Log in</PageTitle>
+<PageTitle>Create Account</PageTitle>
 
 <h2>Create a TheShoeMen username and password:</h2>
 
@@ -19,7 +22,7 @@
     <div class="mb-3">
         <label class="form-label">I am a</label>
         <div class="form-check">
-            <input type="radio" id="customerRole" name="UserRole" class="form-check-input" value="customer" @onchange="SetSelectedRole">
+            <input type="radio" id="customerRole" name="UserRole" class="form-check-input" value="customer" @onchange="SetSelectedRole" checked>
             <label for="customerRole" class="form-check-label">Customer</label>
         </div>
         <div class="form-check">
@@ -53,6 +56,22 @@
     private string errorMessage = "";
     private bool isLoading = false;
     private string SelectedRole { get; set; } = "customer"; // Default selection
+    private bool isFirstRender = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Check if user is already logged in
+            var savedUsername = await CookieService.GetCookieAsync("username");
+            if (!string.IsNullOrEmpty(savedUsername))
+            {
+                NavigationManager.NavigateTo("/Shop");
+            }
+            isFirstRender = false;
+            StateHasChanged();
+        }
+    }
 
     private void SetSelectedRole(ChangeEventArgs e)
     {
@@ -67,17 +86,22 @@
             errorMessage = "";
 
             // Create SQL query to check login
-            var query = $"SELECT * FROM users WHERE username = '{username}'";
+            var query = $"SELECT username FROM users WHERE username = '{username}'";
 
             using var response = await Http.PostAsync("http://localhost:8080", new StringContent(query));
-            var result = await response.Content.ReadFromJsonAsync<List<object>>();
+            var result = await response.Content.ReadFromJsonAsync<List<List<string>>>();
 
             if (result == null || result.Count == 0)
             {
                 // profile doesn't exist, can create this account.
-                Console.WriteLine(result);
                 var queryCreate = $"insert into users (username, password, user_role) values('{username}', '{password}', '{SelectedRole}')";
                 using var responseCreate = await Http.PostAsync("http://localhost:8080", new StringContent(queryCreate));
+                
+                // Set cookies for the new user
+                await CookieService.SetCookieAsync("username", username, 30);
+                await CookieService.SetCookieAsync("user_role", SelectedRole, 30);
+                
+                UserState.SetUser(username, SelectedRole);
                 NavigationManager.NavigateTo("/Shop");
             }
             else
@@ -87,8 +111,8 @@
         }
         catch (Exception ex)
         {
-            errorMessage = "An error occurred while trying to log in. Please try again.";
-            Console.WriteLine($"Login error: {ex.Message}");
+            errorMessage = "An error occurred while trying to create account. Please try again.";
+            Console.WriteLine($"Account creation error: {ex.Message}");
         }
         finally
         {

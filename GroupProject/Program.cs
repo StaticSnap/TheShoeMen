@@ -1,4 +1,5 @@
 using GroupProject.Components;
+using GroupProject.Components.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,6 +8,8 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddHttpClient();
+builder.Services.AddScoped<ICookieService, CookieService>();
+builder.Services.AddScoped<UserState>();
 
 var app = builder.Build();
 

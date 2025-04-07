@@ -1,8 +1,12 @@
 ﻿@page "/login"
 @rendermode InteractiveServer
 @using System.Net.Http.Json
+@using GroupProject.Components.Services
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
+@inject ICookieService CookieService
+@inject UserState UserState
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Log in</PageTitle>
 
@@ -24,6 +28,10 @@
         <label for="password" class="form-label">Password</label>
         <input type="password" id="password" @bind="password" class="form-control" required>
     </div>
+    <div class="mb-3 form-check">
+        <input type="checkbox" class="form-check-input" id="rememberMe" @bind="rememberMe">
+        <label class="form-check-label" for="rememberMe">Remember me</label>
+    </div>
     <button type="submit" class="btn btn-primary" disabled="@isLoading">
         @if (isLoading)
         {
@@ -41,6 +49,23 @@
     private string password = "";
     private string errorMessage = "";
     private bool isLoading = false;
+    private bool rememberMe = false;
+    private bool isFirstRender = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Check if user is already logged in
+            var savedUsername = await CookieService.GetCookieAsync("username");
+            if (!string.IsNullOrEmpty(savedUsername))
+            {
+                NavigationManager.NavigateTo("/Shop");
+            }
+            isFirstRender = false;
+            StateHasChanged();
+        }
+    }
 
     private async Task HandleSubmit()
     {
@@ -50,15 +75,38 @@
             errorMessage = "";
 
             // Create SQL query to check login
-            var query = $"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'";
+            var query = $"SELECT username, password, user_role FROM users WHERE username = '{username}' AND password = '{password}'";
             
             using var response = await Http.PostAsync("http://localhost:8080", new StringContent(query));
-            var result = await response.Content.ReadFromJsonAsync<List<object>>();
+            var resultStr = await response.Content.ReadAsStringAsync();
+            await JSRuntime.InvokeVoidAsync("console.log", "Raw response:", resultStr);
+            
+            var result = await response.Content.ReadFromJsonAsync<List<List<string>>>();
+            await JSRuntime.InvokeVoidAsync("console.log", "Parsed result:", result);
 
             if (result != null && result.Count > 0)
             {
-                // Login successful
-                Console.WriteLine(result);
+                // Login successful - result[0] is the row, result[0][2] is the user_role
+                var userRole = result[0][2];
+                await JSRuntime.InvokeVoidAsync("console.log", "User role:", userRole);
+
+                if (rememberMe)
+                {
+                    await CookieService.SetCookieAsync("username", username, 30); // Store for 30 days
+                    await CookieService.SetCookieAsync("user_role", userRole, 30);
+                }
+                else
+                {
+                    await CookieService.SetCookieAsync("username", username, 1); // Store for 1 day
+                    await CookieService.SetCookieAsync("user_role", userRole, 1);
+                }
+
+                var storedRole = await CookieService.GetCookieAsync("user_role");
+                await JSRuntime.InvokeVoidAsync("console.log", "Stored role cookie:", storedRole);
+
+                UserState.SetUser(username, userRole);
+                await JSRuntime.InvokeVoidAsync("console.log", "UserState after set:", UserState.Username, UserState.UserRole);
+
                 NavigationManager.NavigateTo("/Shop");
             }
             else
@@ -70,6 +118,7 @@
         {
             errorMessage = "An error occurred while trying to log in. Please try again.";
             Console.WriteLine($"Login error: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("console.log", "Login error:", ex.Message);
         }
         finally
         {
