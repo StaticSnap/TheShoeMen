@@ -4,32 +4,110 @@
 @inject NavigationManager navigation
 @rendermode InteractiveServer
 @page "/Shop"
+<PageTitle>Shop</PageTitle>
 
-<PageTitle>Home</PageTitle>
+<div class="text-center" disabled="@isLoading">
+    <h2 class="text-4xl font-bold text-gray-800 mb-2">Shop</h2>
 
-<div class="text-center mb-16">
-        <h2 class="text-4xl font-bold text-gray-800 mb-2">Shop</h2>
+    <input type="text" class="border px-2 py-2 w-full rounded-3 mt-4" @bind="searchTerm" placeholder="@GetSearchBarPlaceholder()" />
+
+    <label for="minPrice" class="text-sm">$@minPrice to</label>
+    <label for="maxPrice" class="text-sm"> $@maxPrice</label>
+
+
+    <input type="range" id="minPrice" min="$0.00" max=maxPrice step="5" @bind="minPrice" class="w-full mt-2" />
+    <input type="range" id="maxPrice" min="$0.00" max=maxPrice step="5" @bind="maxPrice" class="w-full mt-2" />
+
+    <button class="search-button mt-4 px-4 py-2 rounded-lg" @onclick="SearchShoes" disabled="@isLoading">
+        @if (isLoading)
+        {
+            <span>Loading...</span>
+        }
+        else
+        {
+            <span>Search</span>
+        }
+    </button>
+
+    <button class="search-button mt-4 px-4 py-2 rounded-lg" @onclick="resetSearch">
+
+        @if (isLoading)
+        {
+            <span>Loading...</span>
+        }
+        else
+        {
+            <span>Reset Search</span>
+        }
+
+    </button>
+
+
 </div>
 
-<div class="shoe-list">
-	@foreach (Shoe shoe in shoes){
-		<GroupProject.Components.Objects.ShoeSearchResult shoe="shoe" onClick ="NavToDetailsPage"></GroupProject.Components.Objects.ShoeSearchResult>
-	}
+<!-- Add margin-top to the shoe list container directly -->
+<div class="shoe-list ">
+    @foreach (Shoe shoe in shoesList)
+    {
+        <GroupProject.Components.Objects.ShoeSearchResult shoe="shoe" onClick="NavToDetailsPage"></GroupProject.Components.Objects.ShoeSearchResult>
+    }
 </div>
 
 @code {
-	private List<Shoe> shoes = new List<Shoe>();
+    private List<Shoe> shoesList = new List<Shoe>();
+    private string searchTerm = "";
+    private bool isLoading = false;
+    private double minPrice;
+    private double maxPrice;
+    private double absoluteMaxPrice;
 
-	protected async override Task OnInitializedAsync()
-	{
-		await Shoes.Init(Http);
+    protected async override Task OnInitializedAsync()
+    {
+        isLoading = true;
+        await Shoes.Init(Http);
+        shoesList = Shoes.GetShoes();
 
-		shoes = Shoes.GetShoes();
+        minPrice = 0.00;
 
-		await base.OnInitializedAsync();
-	}
+        // get max price from all shoes:
+        var query = $"SELECT * FROM shoe ORDER BY price DESC LIMIT 1;";
 
-	private void NavToDetailsPage(Shoe shoe){
-		navigation.NavigateTo($"/ShoeListing/{shoe.shoeID.ToString()}");
-	}
+        var response = await Http.PostAsync("http://localhost:8080/", new StringContent(query));
+        var mostExpensiveShoe = await response.Content.ReadFromJsonAsync<List<Shoe>>();
+
+        maxPrice = absoluteMaxPrice =  mostExpensiveShoe[0].price;
+
+        await base.OnInitializedAsync();
+        StateHasChanged();
+        isLoading = false;
+    }
+
+    private void NavToDetailsPage(Shoe shoe)
+    {
+        navigation.NavigateTo($"/ShoeListing/{shoe.shoeID.ToString()}");
+    }
+
+    protected async Task SearchShoes()
+    {
+        isLoading = true;
+        var query = $"SELECT * FROM shoe WHERE model = '%{searchTerm}%' OR manufacturer LIKE '%{searchTerm}%' AND price <= {maxPrice} AND price >= {minPrice};";
+
+        var response = await Http.PostAsync("http://localhost:8080/", new StringContent(query));
+        shoesList = await response.Content.ReadFromJsonAsync<List<Shoe>>();
+        StateHasChanged();
+        isLoading = false;
+    }
+
+    protected async Task resetSearch()
+    {
+        isLoading = true;
+        OnInitializedAsync();
+        StateHasChanged();
+        isLoading = false;
+    }
+
+    private string GetSearchBarPlaceholder()
+    {
+        return isLoading ? "Loading..." : "Search shoes...";
+    }
 }
