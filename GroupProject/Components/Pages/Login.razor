@@ -51,16 +51,22 @@
             isLoading = true;
             errorMessage = "";
 
-            // Create SQL query to check login
-            var query = $"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'";
-            
-            using var response = await Http.PostAsync("http://localhost:8080", new StringContent(query));
+            var query = new
+            {
+                type = "select",
+                parameters = new
+                {
+                    table = "users",
+                    username = username,
+                    password = password
+                }
+            };
+
+            using var response = await Http.PostAsJsonAsync("http://localhost:8080/api/query", query);
             var result = await response.Content.ReadFromJsonAsync<List<object>>();
 
             if (result != null && result.Count > 0)
             {
-                // Login successful
-                Console.WriteLine(result);
                 NavigationManager.NavigateTo("/Shop");
             }
             else

@@ -1,35 +1,80 @@
 @using System.Net.Http.Json
 @using System.Text.Json
+@using GroupProject
 @inject HttpClient Http
 @inject NavigationManager navigation
 @rendermode InteractiveServer
 @page "/Shop"
+<PageTitle>Shop</PageTitle>
 
-<PageTitle>Home</PageTitle>
+<div class="text-center mb-8">
+    <h2 class="text-4xl font-bold text-gray-800 mb-2">Shop</h2>
 
-<div class="text-center mb-16">
-        <h2 class="text-4xl font-bold text-gray-800 mb-2">Shop</h2>
+    <input type="text"
+    class="border px-4 py-2 w-1/2 rounded-lg mt-4"
+    placeholder="Search shoes..."
+    @bind="searchTerm" />
+
+    <button class="search-button" @onclick="SearchShoes">
+        Search
+    </button>
 </div>
 
 <div class="shoe-list">
-	@foreach (Shoe shoe in shoes){
-		<GroupProject.Components.Objects.ShoeSearchResult shoe="shoe" onClick ="NavToDetailsPage"></GroupProject.Components.Objects.ShoeSearchResult>
-	}
+    @foreach (Shoe shoe in shoesList)
+    {
+        <GroupProject.Components.Objects.ShoeSearchResult shoe="shoe" onClick="NavToDetailsPage"></GroupProject.Components.Objects.ShoeSearchResult>
+    }
 </div>
 
 @code {
-	private List<Shoe> shoes = new List<Shoe>();
+    private List<Shoe> shoesList = new List<Shoe>();
+    private string searchTerm = "";
 
-	protected async override Task OnInitializedAsync()
-	{
-		await Shoes.Init(Http);
+    protected async override Task OnInitializedAsync()
+    {
+        // Update shoe images first
+        await UpdateShoeImages.UpdateImages(Http);
+        
+        // Then load the shoes
+        await Shoes.Init(Http);
+        shoesList = Shoes.GetShoes();
+        
+        // Debug: Log shoe data
+        foreach (var shoe in shoesList)
+        {
+            Console.WriteLine($"Shoe: {shoe.model}, ImagePath: {shoe.imagePath}");
+        }
+        
+        await base.OnInitializedAsync();
+    }
 
-		shoes = Shoes.GetShoes();
+    private void NavToDetailsPage(Shoe shoe)
+    {
+        navigation.NavigateTo($"/ShoeListing/{shoe.shoeID.ToString()}");
+    }
 
-		await base.OnInitializedAsync();
-	}
+    protected async Task SearchShoes()
+    {
+        var query = new
+        {
+            type = "select",
+            parameters = new
+            {
+                table = "shoe",
+                search_term = searchTerm
+            }
+        };
 
-	private void NavToDetailsPage(Shoe shoe){
-		navigation.NavigateTo($"/ShoeListing/{shoe.shoeID.ToString()}");
-	}
+        var response = await Http.PostAsJsonAsync("http://localhost:8080/api/query", query);
+        shoesList = await response.Content.ReadFromJsonAsync<List<Shoe>>();
+        
+        // Debug: Log search results
+        foreach (var shoe in shoesList)
+        {
+            Console.WriteLine($"Search Result - Shoe: {shoe.model}, ImagePath: {shoe.imagePath}");
+        }
+        
+        StateHasChanged();
+    }
 }

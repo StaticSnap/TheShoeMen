@@ -10,16 +10,36 @@ namespace GroupProject
 
         public async static Task Init(HttpClient Http)
         {
-            // If the shoes have been loaded before. then don't bother loading them again.
             if (shoes.Count != 0)
             {
                 return;
             }
-            var query = $"select * from shoe";
 
-            var response = await Http.PostAsync("http://localhost:8080", new StringContent(query));
+            var query = new
+            {
+                type = "select",
+                parameters = new
+                {
+                    table = "shoe"
+                }
+            };
 
-            shoes = await response.Content.ReadFromJsonAsync<List<Shoe>>();
+            var response = await Http.PostAsJsonAsync("http://localhost:8080/api/query", query);
+            var jsonString = await response.Content.ReadAsStringAsync();
+            Console.WriteLine($"Raw JSON response: {jsonString}");
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            shoes = JsonSerializer.Deserialize<List<Shoe>>(jsonString, options);
+            
+            // Debug: Print loaded shoes
+            foreach (var shoe in shoes)
+            {
+                Console.WriteLine($"Loaded Shoe - ID: {shoe.shoeID}, Model: {shoe.model}, ImagePath: {shoe.imagePath ?? "null"}");
+            }
         }
 
         public static List<Shoe> GetShoes()
@@ -29,14 +49,7 @@ namespace GroupProject
 
         public static Shoe GetShoeFromID(int id)
         {
-            foreach (var shoe in shoes)
-            {
-                if (shoe.shoeID == id)
-                {
-                    return shoe;
-                }
-            }
-            throw new Exception("Shoe not found");
+            return shoes.FirstOrDefault(s => s.shoeID == id) ?? throw new Exception("Shoe not found");
         }
     }
 }

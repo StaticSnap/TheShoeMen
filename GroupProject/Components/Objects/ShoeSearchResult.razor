@@ -1,6 +1,6 @@
 ﻿<div class="shoe-card">
     <div class="shoe-image-container">
-		<img class="shoe-image" src="images/vansoldskool.jpg" alt="@shoe.model" @onclick="() => onClick.InvokeAsync(shoe)">
+		<img class="shoe-image" src="@shoe.imagePath" alt="@shoe.model" @onclick="() => onClick.InvokeAsync(shoe)">
         <div class="shoe-manufacturer">
             @shoe.manufacturer
         </div>

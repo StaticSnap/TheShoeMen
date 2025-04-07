@@ -54,7 +54,7 @@
     private string password = "";
     private string errorMessage = "";
     private bool isLoading = false;
-    private string SelectedRole { get; set; } = "customer"; // Default selection
+    private string SelectedRole { get; set; } = "customer";
 
     private void SetSelectedRole(ChangeEventArgs e)
     {
@@ -68,18 +68,36 @@
             isLoading = true;
             errorMessage = "";
 
-            // Create SQL query to check login
-            var query = $"SELECT * FROM users WHERE username = '{username}'";
+            // Check if username exists
+            var checkQuery = new
+            {
+                type = "select",
+                parameters = new
+                {
+                    table = "users",
+                    username = username
+                }
+            };
 
-            using var response = await Http.PostAsync("http://localhost:8080", new StringContent(query));
-            var result = await response.Content.ReadFromJsonAsync<List<object>>();
+            using var checkResponse = await Http.PostAsJsonAsync("http://localhost:8080/api/query", checkQuery);
+            var result = await checkResponse.Content.ReadFromJsonAsync<List<object>>();
 
             if (result == null || result.Count == 0)
             {
-                // profile doesn't exist, can create this account.
-                Console.WriteLine(result);
-                var queryCreate = $"insert into users (username, password, user_role) values('{username}', '{password}', '{SelectedRole}')";
-                using var responseCreate = await Http.PostAsync("http://localhost:8080", new StringContent(queryCreate));
+                // Create new account
+                var createQuery = new
+                {
+                    type = "insert",
+                    parameters = new
+                    {
+                        table = "users",
+                        username = username,
+                        password = password,
+                        role = SelectedRole
+                    }
+                };
+
+                using var createResponse = await Http.PostAsJsonAsync("http://localhost:8080/api/query", createQuery);
                 NavigationManager.NavigateTo("/Shop");
             }
             else
@@ -89,8 +107,8 @@
         }
         catch (Exception ex)
         {
-            errorMessage = "An error occurred while trying to log in. Please try again.";
-            Console.WriteLine($"Login error: {ex.Message}");
+            errorMessage = "An error occurred while trying to create your account. Please try again.";
+            Console.WriteLine($"Create account error: {ex.Message}");
         }
         finally
         {
