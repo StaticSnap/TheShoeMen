@@ -3,26 +3,52 @@
 @rendermode InteractiveServer
 
 <div class="shoe-listing">
-    <img class="shoe-image" src="images/vansoldskool.jpg" alt="@shoe.model">
-    <div class="shoe-details">
-        <h3 class="shoe-model">@shoe.model</h3>
-        <p class="shoe-price">$@shoe.price</p>
+	<img class="shoe-image" src="images/vansoldskool.jpg" alt="@shoe.model">
+	<div class="shoe-details">
+		<h3 class="shoe-model">@shoe.model</h3>
+		<p class="shoe-price">$@shoe.price</p>
+
+		<select @bind="selectedSize">
+			<option value="" disabled>Select a size</option>
+			@foreach (var size in sizes){
+				<option value="@size">@size</option>
+			}
+		</select>
+
+		<select @bind="selectedColor">
+			<option value="" disabled>Select a color</option>
+			@foreach (var color in colors){
+				<option value="@color">@color</option>
+			}
+		</select>
+
 		<button class="view-details-button" @onclick="AddToCart">
-            Add to Cart
-        </button>
-        <button class="view-details-button" @onclick="GoBack">
-            Return
-        </button>
+			Add to Cart
+		</button>
+
+		<button class="view-details-button" @onclick="GoBack">
+			Return
+		</button>
+
 		<button class="view-details-button" @onclick="Review">
-            Review
-        </button>
-    </div>
+			Review
+		</button>
+
+	</div>
 </div>
 
 @code{
 	[Parameter] public string shoeString { get; set; }
 	private Shoe shoe;
 	//private User user; (fill when user is implemented)
+
+	private string? selectedSize { get; set; }
+
+	private string? selectedColor { get; set; }
+
+	private List<string> sizes = new List<string>();
+
+	private List<string> colors = new List<string>();
 
 	protected override Task OnInitializedAsync()
 	{

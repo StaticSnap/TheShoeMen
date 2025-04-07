@@ -1,0 +1,52 @@
+@inject NavigationManager navigation
+@inject HttpClient Http
+
+@* <div class="shoe-listing">
+    <img class="shoe-image" src="images/vansoldskool.jpg" alt="@shoe.model">
+    <div class="shoe-details">
+        <h3 class="shoe-model">@shoe.model</h3>
+        <p class="shoe-price">$@shoe.price</p>
+		<button class="view-details-button" @onclick="Remove">
+            Remove
+        </button>
+    </div>
+</div>
+
+@code{
+	[Parameter] public string shoeString { get; set; }
+    [Parameter] public string username { get; set; }
+	private Shoe shoe;
+	private User user;
+
+	protected override Task OnInitializedAsync()
+	{
+		shoe = Shoes.GetShoeFromID(int.Parse(shoeString));
+		return base.OnInitializedAsync();
+	}
+
+	private async void Remove() {
+		var queryCreate = $"delete * from user-cart where username={username} and ShoeID={shoe.shoeID}";
+    	using var responseCreate = await Http.PostAsync("http://localhost:8080", new StringContent(queryCreate));
+        if (responseCreate.IsSuccessStatusCode)
+        {
+            navigation.NavigateTo("/store");
+        }
+	}
+
+} *@
+
+<div class="cart-listing">
+    <img class="cart-image" src="images/vansoldskool.jpg" width="150px" alt="@shoe.model" @onclick="() => onClick.InvokeAsync(shoe)">
+    <div class="cart-details">
+        <h3 class="cart-model">@shoe.model</h3>
+        <p class="cart-price">$@shoe.price</p>
+        <button class="remove-button" @onclick="() => onClick.InvokeAsync(shoe)">
+            Remove
+        </button>
+    </div>
+</div>
+
+@code{
+	[Parameter] public Shoe shoe { get; set; }
+	[Parameter] public EventCallback<Shoe> onClick { get; set; }
+}

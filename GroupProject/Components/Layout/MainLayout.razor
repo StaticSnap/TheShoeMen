@@ -1,4 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager navigation
+@inject IJSRuntime JS
 
 <div class="page">
     <div class="sidebar">
@@ -7,7 +9,7 @@
 
     <main>
         <div class="top-row px-4">
-            <a>Cart</a>
+            <a href="cart/ccaen">Cart</a>
             <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
 
@@ -22,3 +24,19 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code{
+    @* [Parameter] public string des_username { get; set; }
+	private User user;
+	protected override Task OnInitializedAsync()
+	{
+		user = Users.GetUserFromName("ccaen"); //hardcoded for now
+		return base.OnInitializedAsync();
+	}
+
+	private void Cart() {
+        Console.WriteLine("cart in");
+        navigation.NavigateTo($"/cart/{user.username}");
+    } *@
+
+}
