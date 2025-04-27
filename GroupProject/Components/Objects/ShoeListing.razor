@@ -57,7 +57,7 @@
 
 		foreach(var line in stockData){
 			colors.Add(Colors.GetColorFromID(line.Item1));
-			sizes.Add(line.Item2.ToString());
+			sizes.Add(Sizes.GetSizeFromID(line.Item2));
 		}
 
 		return base.OnInitializedAsync();
