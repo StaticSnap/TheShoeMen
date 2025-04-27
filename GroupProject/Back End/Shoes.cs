@@ -20,6 +20,14 @@ namespace GroupProject
             var response = await Http.PostAsync("http://localhost:8080", new StringContent(query));
 
             shoes = await response.Content.ReadFromJsonAsync<List<Shoe>>();
+
+            foreach(Shoe shoe in shoes)
+            {
+                await shoe.Init(Http);
+            }
+
+            await Colors.Init(Http);
+            await Sizes.Init(Http);
         }
 
         public static List<Shoe> GetShoes()
