@@ -12,15 +12,6 @@
 
         private List<Stock> inventory = new List<Stock>();
 
-        public async Task Init(HttpClient Http)
-        {
-            var query = $"select colorID, sizeID, quantity from stock where shoeID = " + shoeID;
-
-            var response = await Http.PostAsync("http://localhost:8080", new StringContent(query));
-
-            inventory = await response.Content.ReadFromJsonAsync<List<Stock>>();
-        }
-
         public List<(int,int,int)> GetInventory()
         {
             List<(int, int, int)> data = new List<(int, int, int)>();
@@ -31,6 +22,11 @@
             }
 
             return data;
+        }
+
+        public void AddStock(Stock stock)
+        {
+            inventory.Add(stock);
         }
     }
 }

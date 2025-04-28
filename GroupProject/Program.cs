@@ -62,6 +62,34 @@ void RunPythonServer()
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Failed to start Python server: {ex.Message}");
+        try
+        {
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "python", // Ensure 'python3' is in your PATH or provide the full path to the Python 3 executable
+                Arguments = "server.py",
+                WorkingDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Back End", "Databases"), // Adjust the path as needed
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            var process = new Process
+            {
+                StartInfo = startInfo
+            };
+
+            process.OutputDataReceived += (sender, args) => Console.WriteLine(args.Data);
+            process.ErrorDataReceived += (sender, args) => Console.WriteLine($"Error: {args.Data}");
+
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+        }
+        catch
+        {
+            Console.WriteLine($"Failed to start Python server: {ex.Message}");
+        }
     }
 }

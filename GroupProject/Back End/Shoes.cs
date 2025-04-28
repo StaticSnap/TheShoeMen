@@ -21,9 +21,23 @@ namespace GroupProject
 
             shoes = await response.Content.ReadFromJsonAsync<List<Shoe>>();
 
-            foreach(Shoe shoe in shoes)
+            query = $"select * from stock";
+
+            response = await Http.PostAsync("http://localhost:8080", new StringContent(query));
+            
+            List<Stock> totalStock = new List<Stock>();
+
+            totalStock = await response.Content.ReadFromJsonAsync<List<Stock>>();
+
+            foreach(Stock listing in totalStock)
             {
-                await shoe.Init(Http);
+                foreach(Shoe shoe in shoes)
+                {
+                    if(shoe.shoeID == listing.shoeID)
+                    {
+                        shoe.AddStock(listing);
+                    }
+                }
             }
 
             await Colors.Init(Http);

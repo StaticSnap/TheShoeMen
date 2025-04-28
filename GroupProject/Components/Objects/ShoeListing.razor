@@ -8,14 +8,14 @@
 		<h3 class="shoe-model">@shoe.model</h3>
 		<p class="shoe-price">$@shoe.price</p>
 
-		<select @bind="selectedSize">
+		<select @onchange="OnSizeChanged">
 			<option value="" disabled>Select a size</option>
 			@foreach (var size in sizes){
 				<option value="@size">@size</option>
 			}
 		</select>
 
-		<select @bind="selectedColor">
+		<select @bind="selectedColor" name="colorSelector">
 			<option value="" disabled>Select a color</option>
 			@foreach (var color in colors){
 				<option value="@color">@color</option>
@@ -56,8 +56,10 @@
 		List<(int, int, int)> stockData = shoe.GetInventory();
 
 		foreach(var line in stockData){
-			colors.Add(Colors.GetColorFromID(line.Item1));
-			sizes.Add(Sizes.GetSizeFromID(line.Item2));
+			if (!sizes.Contains(Sizes.GetSizeFromID(line.Item2)))
+			{
+				sizes.Add(Sizes.GetSizeFromID(line.Item2));
+			}
 		}
 
 		return base.OnInitializedAsync();
@@ -73,6 +75,20 @@
 
 	private void Review() {
 		navigation.NavigateTo($"/review/{shoe.shoeID}");
+	}
+
+	private void OnSizeChanged(ChangeEventArgs e){
+		selectedSize = e.Value.ToString();
+		List<(int, int, int)> stockData = shoe.GetInventory();
+
+		colors.Clear();
+
+		foreach (var line in stockData)
+		{
+			if(Sizes.GetSizeFromID(line.Item2) == selectedSize){
+				colors.Add(Colors.GetColorFromID(line.Item1));
+			}
+		}
 	}
 
 }
