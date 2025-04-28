@@ -1,6 +1,7 @@
 ﻿@page "/createaccount"
 @rendermode InteractiveServer
 @using System.Net.Http.Json
+@using BCrypt.Net;
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 
@@ -78,7 +79,7 @@
             {
                 // profile doesn't exist, can create this account.
                 Console.WriteLine(result);
-                var queryCreate = $"insert into users (username, password, user_role) values('{username}', '{password}', '{SelectedRole}')";
+                var queryCreate = $"insert into users (username, password, user_role) values('{username}', '{BCrypt.HashPassword(password)}', '{SelectedRole}')";
                 using var responseCreate = await Http.PostAsync("http://localhost:8080", new StringContent(queryCreate));
                 NavigationManager.NavigateTo("/Shop");
             }

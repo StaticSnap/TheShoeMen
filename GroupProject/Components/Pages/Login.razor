@@ -1,6 +1,7 @@
 ﻿@page "/login"
 @rendermode InteractiveServer
 @using System.Net.Http.Json
+@using BCrypt.Net;
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 
@@ -51,17 +52,27 @@
             isLoading = true;
             errorMessage = "";
 
-            // Create SQL query to check login
-            var query = $"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'";
-            
+            // Query to fetch the user by username
+            var query = $"SELECT password FROM users WHERE username = '{username}'";
+
             using var response = await Http.PostAsync("http://localhost:8080", new StringContent(query));
-            var result = await response.Content.ReadFromJsonAsync<List<object>>();
+            var result = await response.Content.ReadFromJsonAsync<List<Dictionary<string, string>>>();
 
             if (result != null && result.Count > 0)
             {
-                // Login successful
-                Console.WriteLine(result);
-                NavigationManager.NavigateTo("/Shop");
+                // Extract the hashed password from the result
+                var hashedPassword = result[0]["password"];
+
+                // Verify the provided password against the hashed password
+                if (BCrypt.Verify(password, hashedPassword))
+                {
+                    // Login successful
+                    NavigationManager.NavigateTo("/Shop");
+                }
+                else
+                {
+                    errorMessage = "Invalid username or password. Don't have an account? <a href='/createaccount'>Create one here</a>";
+                }
             }
             else
             {
